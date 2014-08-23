@@ -18,11 +18,9 @@
 
 #define LOG_DEBUG(...) if (env_debug) fprintf(stderr, "[kneesocks] " __VA_ARGS__)
 
-static int (*orig_getaddrinfo)(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);
-
 extern int h_errno;
+static int (*orig_getaddrinfo)(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);
 static struct hostent *(*orig_gethostbyname)(const char *name);
-
 static int (*orig_connect)(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
 static char *env_debug;
@@ -34,7 +32,7 @@ libkneesocks_init()
     char *env_socks_proxy;
     char *proxy_node;
     char *proxy_service;
-    char buf[256];
+    char buf[512];
 
     orig_getaddrinfo = dlsym(RTLD_NEXT, "getaddrinfo");
     orig_gethostbyname = dlsym(RTLD_NEXT, "gethostbyname");
@@ -74,7 +72,7 @@ int connect_proxy(int sockfd, const struct sockaddr_in *addr, socklen_t addrlen)
     int fd_flags;
     int ret;
     struct sockaddr_in *proxy_addr;
-    char buf[256];
+    char buf[512];
     int nodelen;
 
     fd_flags = fcntl(sockfd, F_GETFL, 0);
