@@ -1,5 +1,6 @@
 CC = gcc
 OBJS = kneesocks libkneesocks.so
+PREFIX = /usr/local
 
 all: $(OBJS)
 
@@ -7,17 +8,19 @@ clean:
 	rm -f $(OBJS)
 
 install:
-	chmod 755 kneesocks
-	chmod 644 libkneesocks.so
-	cp kneesocks /usr/bin/kneesocks
-	cp libkneesocks.so /usr/lib/libkneesocks.so
+	install -m 755 kneesocks $(PREFIX)/bin/kneesocks
+	install -m 644 libkneesocks.so $(PREFIX)/lib/libkneesocks.so
+	echo $(PREFIX)/lib > /etc/ld.so.conf.d/libkneesocks.conf
+	ldconfig
 
 uninstall:
-	rm -f /usr/bin/kneesocks
-	rm -f /usr/lib/libkneesocks.so
+	rm -f $(PREFIX)/bin/kneesocks
+	rm -f $(PREFIX)/lib/libkneesocks.so
+	rm -f /etc/ld.so.conf.d/libkneesocks.conf
+	ldconfig
 
 kneesocks: kneesocks.c
-	$(CC) -o kneesocks kneesocks.c
+	$(CC) -o $@ $<
 
 libkneesocks.so: libkneesocks.c
-	$(CC) -shared -fPIC -o libkneesocks.so libkneesocks.c -ldl
+	$(CC) -shared -fPIC -o $@ $< -ldl
