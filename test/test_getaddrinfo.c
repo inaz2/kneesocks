@@ -28,5 +28,6 @@ int main()
     recv(s, buf, sizeof(buf), 0);
     puts(buf);
 
+    freeaddrinfo(info);
     return 0;
 }

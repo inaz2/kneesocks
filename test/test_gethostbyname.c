@@ -22,7 +22,7 @@ int main()
     s = socket(host->h_addrtype, SOCK_STREAM, 0);
     sin.sin_family = host->h_addrtype;
     sin.sin_port = htons(80);
-    sin.sin_addr = *(struct in_addr *)host->h_addr;
+    sin.sin_addr = *(struct in_addr *)host->h_addr_list[0];
     ret = connect(s, (struct sockaddr *)&sin, sizeof(sin));
     if (ret != 0) {
         fprintf(stderr, "connect() failed\n");
