@@ -2,9 +2,11 @@
 
 LD_PRELOAD based SOCKS 5 proxifier
 
-* intended to use with OpenSSH dynamic port forwarding
-  * for now, support only TCP CONNECT command with no authentication
+* supports only TCP CONNECT command with no authentication
+  * intended to use with OpenSSH dynamic port forwarding
+  * implemented by replacing connect(2)
 * support proxy-end DNS resolution
+  * implemented by replacing getaddrinfo(3)/gethostbyname(3)
 
 
 ## Installation
