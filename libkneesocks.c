@@ -45,7 +45,7 @@ libkneesocks_init()
         proxy_node = strtok(buf, ":");
         proxy_service = strtok(NULL, ":");
     } else {
-        proxy_node = "127.0.0.1";
+        proxy_node = "localhost";
         proxy_service = "1080";
     }
     orig_getaddrinfo(proxy_node, proxy_service, NULL, &proxy_info);
@@ -91,7 +91,7 @@ int connect_proxy(int sockfd, const struct sockaddr_in *addr, socklen_t addrlen)
     assert(memcmp(buf, "\x05\x00", 2) == 0);
 
     if (memcmp(&addr->sin_addr, "\x00\x00\x00\x01", 4) == 0) {
-        LOG_DEBUG("connect_proxy: domain_name=%s\n", saved_node);
+        LOG_DEBUG("connect_proxy: saved_node=%s\n", saved_node);
         memcpy(buf, "\x05\x01\x00\x03", 4);
         nodelen = strlen(saved_node);
         buf[4] = (unsigned char)nodelen;

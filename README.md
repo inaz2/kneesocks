@@ -46,7 +46,7 @@ kneesocks uses environment variables for configuration.
 To change proxy server address:
 
 ```
-$ export socks_proxy=127.0.0.1:1080
+$ export socks_proxy=localhost:1080
 ```
 
 The default address is just above.
