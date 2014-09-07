@@ -7,6 +7,9 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+/* for inet_ntop(3) */
+#include <arpa/inet.h>
+
 /* for fcntl(2) */
 #include <unistd.h>
 #include <fcntl.h>
@@ -26,8 +29,10 @@ static int (*orig_connect)(int sockfd, const struct sockaddr *addr, socklen_t ad
 static char *env_debug;
 static struct addrinfo *proxy_info;
 
-void __attribute__((constructor))
-libkneesocks_init()
+static __thread char saved_node[256];
+
+static void __attribute__((constructor))
+init()
 {
     char *env_socks_proxy;
     char *proxy_node;
@@ -50,8 +55,6 @@ libkneesocks_init()
     }
     orig_getaddrinfo(proxy_node, proxy_service, NULL, &proxy_info);
 }
-
-static __thread char saved_node[256];
 
 int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res)
 {
@@ -124,7 +127,7 @@ int connect_proxy(int sockfd, const struct sockaddr_in *addr, socklen_t addrlen)
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
     int so_type;
-    int optlen;
+    socklen_t optlen;
     struct sockaddr_in *addr_in;
     char str_address[64];
 
