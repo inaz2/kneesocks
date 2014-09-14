@@ -37,7 +37,8 @@ init()
     char *env_socks_proxy;
     char *proxy_node;
     char *proxy_service;
-    char buf[512];
+    char *tmpbuf;
+    char **p_tmpbuf;
 
     orig_getaddrinfo = dlsym(RTLD_NEXT, "getaddrinfo");
     orig_gethostbyname = dlsym(RTLD_NEXT, "gethostbyname");
@@ -46,14 +47,17 @@ init()
     env_debug = getenv("DEBUG");
     env_socks_proxy = getenv("socks_proxy");
     if (env_socks_proxy) {
-        strncpy(buf, env_socks_proxy, sizeof(buf));
-        proxy_node = strtok(buf, ":");
-        proxy_service = strtok(NULL, ":");
+        tmpbuf = strdup(env_socks_proxy);
+        p_tmpbuf = &tmpbuf;
+        proxy_node = strsep(p_tmpbuf, ":");
+        proxy_service = strsep(p_tmpbuf, ":");
+        orig_getaddrinfo(proxy_node, proxy_service, NULL, &proxy_info);
+        free(tmpbuf);
     } else {
         proxy_node = "localhost";
         proxy_service = "1080";
+        orig_getaddrinfo(proxy_node, proxy_service, NULL, &proxy_info);
     }
-    orig_getaddrinfo(proxy_node, proxy_service, NULL, &proxy_info);
 }
 
 int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res)
@@ -95,8 +99,9 @@ int connect_proxy(int sockfd, const struct sockaddr_in *addr, socklen_t addrlen)
 
     if (memcmp(&addr->sin_addr, "\x00\x00\x00\x01", 4) == 0) {
         LOG_DEBUG("connect_proxy: saved_node=%s\n", saved_node);
-        memcpy(buf, "\x05\x01\x00\x03", 4);
         nodelen = strlen(saved_node);
+        assert(7+nodelen <= sizeof(buf));
+        memcpy(buf, "\x05\x01\x00\x03", 4);
         buf[4] = (unsigned char)nodelen;
         memcpy(buf+5, saved_node, nodelen);
         memcpy(buf+5+nodelen, &addr->sin_port, 2);
