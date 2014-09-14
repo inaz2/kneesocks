@@ -1,12 +1,11 @@
 CC = gcc
 CFLAGS = -O2 -Wall -Werror
-OBJS = kneesocks libkneesocks.so
 PREFIX = /usr/local
 
-all: $(OBJS)
+all: libkneesocks.so
 
 clean:
-	rm -f $(OBJS)
+	rm -f libkneesocks.so
 
 install:
 	install -m 755 kneesocks $(PREFIX)/bin/kneesocks
@@ -19,9 +18,6 @@ uninstall:
 	rm -f $(PREFIX)/lib/libkneesocks.so
 	rm -f /etc/ld.so.conf.d/libkneesocks.conf
 	ldconfig
-
-kneesocks: kneesocks.c
-	$(CC) $(CFLAGS) -o $@ $<
 
 libkneesocks.so: libkneesocks.c
 	$(CC) $(CFLAGS) -shared -fPIC -o $@ $< -ldl

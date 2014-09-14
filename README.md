@@ -1,6 +1,6 @@
 # kneesocks
 
-LD_PRELOAD based SOCKS 5 proxifier
+LD_PRELOAD based SOCKS5 proxifier
 
 * supports only TCP CONNECT command with no authentication
   * intended to use with OpenSSH dynamic port forwarding

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+    cat <<EOF >/dev/stderr
+Usage: kneesocks COMMAND [ARG ...]
+
+Environment variables:
+    socks_proxy=HOST:PORT
+        configure SOCKS5 proxy address (default: localhost:1080)
+
+    DEBUG=[1|0]
+        output debug messages to standard error (default: 0)
+EOF
+    exit 1
+fi
+
+export LD_PRELOAD="libkneesocks.so $LD_PRELOAD"
+exec $*
