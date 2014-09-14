@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <errno.h>
 
 #define LOG_DEBUG(...) if (env_debug) fprintf(stderr, "[kneesocks] " __VA_ARGS__)
 
@@ -63,14 +63,14 @@ init()
 int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res)
 {
     LOG_DEBUG("getaddrinfo: node=%s, service=%s\n", node, service);
-    strncpy(saved_node, node, sizeof(saved_node));
+    strncpy(saved_node, node, sizeof(saved_node)-1);
     return (*orig_getaddrinfo)("0.0.0.1", service, hints, res);
 }
 
 struct hostent *gethostbyname(const char *name)
 {
     LOG_DEBUG("gethostbyname: name=%s\n", name);
-    strncpy(saved_node, name, sizeof(saved_node));
+    strncpy(saved_node, name, sizeof(saved_node)-1);
     return (*orig_gethostbyname)("0.0.0.1");
 }
 
@@ -95,12 +95,20 @@ int connect_proxy(int sockfd, const struct sockaddr_in *addr, socklen_t addrlen)
 
     send(sockfd, "\x05\x01\x00", 3, 0);
     recv(sockfd, buf, 2, 0);
-    assert(memcmp(buf, "\x05\x00", 2) == 0);
+    if (memcmp(buf, "\x05\x00", 2) != 0) {
+        LOG_DEBUG("connect_proxy: authentication required\n");
+        errno = ECONNREFUSED;
+        return -1;
+    }
 
     if (memcmp(&addr->sin_addr, "\x00\x00\x00\x01", 4) == 0) {
         LOG_DEBUG("connect_proxy: saved_node=%s\n", saved_node);
         nodelen = strlen(saved_node);
-        assert(7+nodelen <= sizeof(buf));
+        if (nodelen > sizeof(saved_node) || 7+nodelen > sizeof(buf)) {
+            LOG_DEBUG("connect_proxy: saved_node is something weird\n");
+            errno = ECONNREFUSED;
+            return -1;
+        }
         memcpy(buf, "\x05\x01\x00\x03", 4);
         buf[4] = (unsigned char)nodelen;
         memcpy(buf+5, saved_node, nodelen);
@@ -122,7 +130,11 @@ int connect_proxy(int sockfd, const struct sockaddr_in *addr, socklen_t addrlen)
     }
 
     recv(sockfd, buf, 10, 0);
-    assert(memcmp(buf, "\x05\x00", 2) == 0);
+    if (memcmp(buf, "\x05\x00", 2) != 0) {
+        LOG_DEBUG("connect_proxy: connection failed (%d)\n", buf[1]);
+        errno = ECONNREFUSED;
+        return -1;
+    }
 
     fcntl(sockfd, F_SETFL, fd_flags);
 
