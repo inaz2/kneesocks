@@ -29,7 +29,7 @@ static int (*orig_connect)(int sockfd, const struct sockaddr *addr, socklen_t ad
 static char *env_debug;
 static struct addrinfo *proxy_info;
 
-static __thread char saved_node[256];
+static char saved_node[256];
 
 static void __attribute__((constructor))
 init()
@@ -39,10 +39,17 @@ init()
     char *proxy_service;
     char *tmpbuf;
     char **p_tmpbuf;
+    struct addrinfo hints;
 
     orig_getaddrinfo = dlsym(RTLD_NEXT, "getaddrinfo");
     orig_gethostbyname = dlsym(RTLD_NEXT, "gethostbyname");
     orig_connect = dlsym(RTLD_NEXT, "connect");
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = 0;
+    hints.ai_protocol = 0;
 
     env_debug = getenv("DEBUG");
     env_socks_proxy = getenv("socks_proxy");
@@ -51,12 +58,12 @@ init()
         p_tmpbuf = &tmpbuf;
         proxy_node = strsep(p_tmpbuf, ":");
         proxy_service = strsep(p_tmpbuf, ":");
-        orig_getaddrinfo(proxy_node, proxy_service, NULL, &proxy_info);
+        orig_getaddrinfo(proxy_node, proxy_service, &hints, &proxy_info);
         free(tmpbuf);
     } else {
         proxy_node = "localhost";
         proxy_service = "1080";
-        orig_getaddrinfo(proxy_node, proxy_service, NULL, &proxy_info);
+        orig_getaddrinfo(proxy_node, proxy_service, &hints, &proxy_info);
     }
 }
 
