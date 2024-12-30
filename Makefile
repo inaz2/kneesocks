@@ -8,15 +8,15 @@ clean:
 	rm -f libkneesocks.so
 
 install:
-	install -m 755 kneesocks $(PREFIX)/bin/kneesocks
-	install -m 644 libkneesocks.so $(PREFIX)/lib/libkneesocks.so
-	echo $(PREFIX)/lib > /etc/ld.so.conf.d/libkneesocks.conf
+	install -D -m 755 kneesocks $(PREFIX)/bin/kneesocks
+	install -D -m 644 libkneesocks.so $(PREFIX)/lib/kneesocks/libkneesocks.so
+	echo $(PREFIX)/lib/kneesocks > /etc/ld.so.conf.d/kneesocks.conf
 	ldconfig
 
 uninstall:
 	rm -f $(PREFIX)/bin/kneesocks
-	rm -f $(PREFIX)/lib/libkneesocks.so
-	rm -f /etc/ld.so.conf.d/libkneesocks.conf
+	rm -rf $(PREFIX)/lib/kneesocks
+	rm -f /etc/ld.so.conf.d/kneesocks.conf
 	ldconfig
 
 libkneesocks.so: libkneesocks.c
