@@ -15,4 +15,4 @@ EOF
 fi
 
 export LD_PRELOAD="libkneesocks.so $LD_PRELOAD"
-exec $*
+exec "$*"
