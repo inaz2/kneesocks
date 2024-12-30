@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ "$#" -lt 1 ]; then
+if [[ $# -lt 1 ]]; then
     cat <<__EOF__ >/dev/stderr
 Usage: kneesocks COMMAND [ARG ...]
 
